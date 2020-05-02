@@ -1,19 +1,20 @@
 <template>
    <div>
+       <h1>Edit Information</h1>
     <div class="form-group">
             <label for="Name">Name</label>
             <input v-model="editData.name" type="text" class="form-control" aria-describedby="emailHelp" placeholder="Enter name">
         </div>
         <div class="form-group">
             <label for="exampleInputPassword1">Image</label>
-            <input @change="onFileChange" type="file" class="form-control">
+            <input @change="getFilePath" type="file" class="form-control">
             <div class="progress" v-if="percent !=0 && percent !=100">
             <div class="progress-bar" role="progressbar" :style="'width:'+percent+'%'" aria-valuenow="25" aria-valuemin="0" aria-valuemax="100"></div>
             </div>
         </div>
         <div class="form-group">
             <label for="Image">Image Preview </label>
-            <img width="50%" :src="imageDirectory+editData.image" :alt="editData.name">
+            <img width="50%" :src="url" :alt="editData.name">
            
         </div>
         <div class="form-group">
@@ -40,8 +41,14 @@ export default {
                 },
             percent: 0,
             imageDirectory: "http://127.0.0.1:8000/uploads/",
-            previewImage: ""
+            formSubmit: new FormData(),
+            url: null
         }
+    },
+    updated(){
+        this.formSubmit.append("id", this.editData.id);
+        this.formSubmit.append("name", this.editData.name);
+        this.formSubmit.append("description", this.editData.description);
     },
     mounted(){
        
@@ -55,6 +62,8 @@ export default {
           }
           else{
              this.editData = res.data.student;
+             this.url = this.imageDirectory + this.editData.image;
+
           }
            
         }).catch(error => {
@@ -62,6 +71,7 @@ export default {
            // error msg here...
          }
         });
+
 
 
     },
@@ -76,8 +86,11 @@ export default {
         },
         editDataStudent(){
             var currentApp = this;
-        this.$axios.post("http://127.0.0.1:8000/api/v1/students/update"+"/"+currentApp.editData.id, currentApp.editData)
+
+            console.log(currentApp.formSubmit);
+        this.$axios.post("http://127.0.0.1:8000/api/v1/students/update"+"/"+currentApp.editData.id, currentApp.formSubmit)
         .then(res=>{
+                console.log(res.data);
           if(res.data.error)
           {
              this.$iziToast.error({
@@ -103,45 +116,17 @@ export default {
 
 
         },
+         getFilePath(e){
+      // var currentApp = this;
+      var file = e.target.files || e.dataTransfers.files;
+      file = file[0];
+      this.url = URL.createObjectURL(file);
+        
+        this.formSubmit.append("image", file, file.name);
+        this.formSubmit.append("removeImage", this.editData.image);
 
-        onFileChange(e){
-        var currentApp = this;
-        var files = e.target.files || e.dataTransfers.files;
-        var file = files[0];
-        var fd = new FormData();
-        fd.append("image", file, file.name);
-        fd.append("removeImage", currentApp.editData.image);
-
-        console.log(fd);
-
-
-        // console.log(this.user);
-        this.$axios.post("http://127.0.0.1:8000/api/v1/edit-image", fd, {
-					onUploadProgress: function(uploadEvent){
-						var a = Math.round(uploadEvent.loaded / uploadEvent.total *100);
-						currentApp.percent = a;
-					}
-				})
-        .then(res=>{
-            
-           currentApp.editData.image = res.data.data;
-            if(res.data.error)
-            {
-                this.$iziToast.error({
-                title: 'Error',
-                message: res.data.message,
-                });
-            }
-            else
-            {
-                this.$iziToast.success({
-                title: 'Success',
-                message: res.data.message,
-                });
-            }
-            
-        });
-    },
+    //   console.log(this.url);
+        },
     }
 }
 </script>

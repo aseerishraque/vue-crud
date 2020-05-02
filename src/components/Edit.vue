@@ -48,7 +48,6 @@ export default {
          this.studentId = this.$route.params.id;
                     this.$axios.get("http://127.0.0.1:8000/api/v1/students"+"/"+this.studentId)
         .then(res=>{
-          // this.$eventBus.$emit("loadingStatus", false);
           this.loadingCatgegory = false;
           if(res.data.error)
           {
@@ -56,7 +55,6 @@ export default {
           }
           else{
              this.editData = res.data.student;
-             console.log(this.editData);
           }
            
         }).catch(error => {
@@ -78,7 +76,6 @@ export default {
         },
         editDataStudent(){
             var currentApp = this;
-            console.log(currentApp.editData);
         this.$axios.post("http://127.0.0.1:8000/api/v1/students/update"+"/"+currentApp.editData.id, currentApp.editData)
         .then(res=>{
           if(res.data.error)
@@ -113,14 +110,20 @@ export default {
         var file = files[0];
         var fd = new FormData();
         fd.append("image", file, file.name);
+        fd.append("removeImage", currentApp.editData.image);
+
+        console.log(fd);
+
+
         // console.log(this.user);
-        this.$axios.post("http://127.0.0.1:8000/api/v1/upload-image", fd, {
+        this.$axios.post("http://127.0.0.1:8000/api/v1/edit-image", fd, {
 					onUploadProgress: function(uploadEvent){
 						var a = Math.round(uploadEvent.loaded / uploadEvent.total *100);
 						currentApp.percent = a;
 					}
 				})
         .then(res=>{
+            
            currentApp.editData.image = res.data.data;
             if(res.data.error)
             {

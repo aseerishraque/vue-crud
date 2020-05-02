@@ -8,8 +8,11 @@
         <div class="form-group">
             <label for="exampleInputPassword1">Image</label>
             <input @change="getFilePath" type="file" class="form-control">
+            
             <div class="progress" v-if="percent !=0 && percent !=100">
-            <div class="progress-bar" role="progressbar" :style="'width:'+percent+'%'" aria-valuenow="25" aria-valuemin="0" aria-valuemax="100"></div>
+            <div class="progress-bar" role="progressbar" :style="'width:'+percent+'%'" aria-valuenow="25" aria-valuemin="0" aria-valuemax="100">
+                {{ percent }}%
+            </div>
             </div>
         </div>
         <div class="form-group">
@@ -62,7 +65,12 @@ export default {
         },
         addNewStudent(){
             var currentApp = this;
-        this.$axios.post("http://127.0.0.1:8000/api/v1/students/store", currentApp.formSubmit)
+        this.$axios.post("http://127.0.0.1:8000/api/v1/students/store", currentApp.formSubmit, {
+					onUploadProgress: function(uploadEvent){
+						var a = Math.round(uploadEvent.loaded / uploadEvent.total *100);
+						currentApp.percent = a;
+                    }
+        })
         .then(res=>{
           if(res.data.error)
           {
